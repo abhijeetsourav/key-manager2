@@ -1,8 +1,7 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import { getMessaging } from "firebase/messaging";
+importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js");
+importScripts(
+  "https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"
+);
 
 // const firebaseConfig = {
 //   apiKey: "AIzaSyBVhpqjCB1HmBkAoLQWyhQ0zy1J3q3S0E0",
@@ -26,14 +25,19 @@ const firebaseConfig = {
   measurementId: "G-YDQL9KJGNL",
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-const microsoftProvider = new OAuthProvider("microsoft.com");
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
 
-// Initialize Firebase Cloud Messaging and get a reference to the service
-const messaging = getMessaging(app);
+messaging.onBackgroundMessage((payload) => {
+  console.log(
+    "[firebase-messaging-sw.js] Received background message ",
+    payload
+  );
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: payload.notification.image,
+  };
 
-export { db, app, auth, googleProvider, microsoftProvider, messaging };
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});

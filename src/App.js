@@ -1,6 +1,6 @@
 import "./components/signup/signup.css";
 import "./App.css";
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 
 import Login from "./components/login/login";
@@ -12,11 +12,36 @@ import PublicRoute from "./routes/publicroute";
 
 import { AuthContext } from "./components/auth";
 import ExternalSignup from "./components/signup/external-signup-doc";
+import { getToken } from "firebase/messaging";
+import { Messaging } from "firebase/messaging";
+import { messaging } from "./firebase";
 
 function App() {
   const currentUser = useContext(AuthContext);
-  // console.log("hola");
-  // window.confirm("whatcha doin");
+
+  // Notification permission
+
+  async function notificationPermission() {
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      //generate token
+      const token = await getToken(messaging, {
+        vapidKey:
+          "BDIZJW3mNJaoOKHDWcdiQ1pEzyu6dkAEdyp5OgcHbnKybIY5wVOpThyAHqiHnXLHoUf5wB4Kj_KxlYJZl6IwmGA",
+      });
+      // console.log(token);
+    } else if (permission === "denied") {
+      alert("notification access was not given");
+    }
+  }
+
+  useEffect(() => {
+    // requesting user to give permission
+    notificationPermission();
+  }, []);
+
+  // Notification permission
 
   return (
     <BrowserRouter>
