@@ -15,6 +15,7 @@ import ExternalSignup from "./components/signup/external-signup-doc";
 import { getToken } from "firebase/messaging";
 import { Messaging } from "firebase/messaging";
 import { messaging } from "./firebase";
+import AdminPanel from "./components/admin/admin-panel";
 
 function App() {
   const currentUser = useContext(AuthContext);
@@ -62,6 +63,12 @@ function App() {
             path="/home"
             element={
               <PrivateRoute currentUser={currentUser} Component={Name} />
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute currentUser={currentUser} Component={AdminPanel} />
             }
           />
           <Route

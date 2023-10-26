@@ -17,50 +17,49 @@ function Login() {
   // new toast promise here
 
   const handleLogin = async () => {
-    try {
-      // Display a loading toast while waiting for authentication
-      // const loadingToast = toast.loading("Logging in...");
+    // try {
+    // Display a loading toast while waiting for authentication
+    // const loadingToast = toast.loading("Logging in...");signInWithEmailAndPassword(auth, email, password)
+    const userLogin = signInWithEmailAndPassword(auth, email, password);
 
-      await toast.promise(signInWithEmailAndPassword(auth, email, password), {
-        loading: "Logging in...", // Loading message (optional)
-        success: "Logged in successfully!", // Displayed on successful login
-        error: (error) => {
-          toast.dismiss();
-          // Customize error messages based on error code
-          switch (error.code) {
-            case "auth/user-not-found":
-              return "User not found. Please check your email.";
-            case "auth/wrong-password":
-              return "Incorrect password. Please try again.";
-            case "auth/invalid-email":
-              return "Invalid email address. Please enter a valid email.";
-            case "auth/user-disabled":
-              return "User account is disabled. Contact support for assistance.";
-            case "auth/user-token-expired":
-              return "User session has expired. Please sign in again.";
-            case "auth/too-many-requests":
-              return "Too many sign-in attempts. Please try again later.";
-            case "auth/network-request-failed":
-              return "Network error. Check your internet connection.";
-            case "auth/internal-error":
-              return "Internal error occurred. Please try again later.";
-            case "auth/invalid-api-key":
-              return "Invalid Firebase API key. Check your configuration.";
-            case "auth/invalid-tenant-id":
-              return "Invalid tenant ID. Check your setup.";
-            case "auth/operation-not-supported-in-this-environment":
-              return "Sign-in not supported in this environment.";
-            default:
-              return "An error occurred. Please try again.";
-          }
-        },
-      });
-
-      // If the promise resolves successfully, hide the loading toast
-      toast.dismiss();
-    } catch (error) {
-      // toast.error("An unexpected error occurred:", error);
-    }
+    toast.promise(userLogin, {
+      loading: "Logging in...", // Loading message (optional)
+      success: "Logged in successfully!", // Displayed on successful login
+      error: (error) => {
+        toast.dismiss();
+        // Customize error messages based on error code
+        switch (error.code) {
+          case "auth/user-not-found":
+            return "User not found. Please check your email.";
+          case "auth/wrong-password":
+            return "Incorrect password. Please try again.";
+          case "auth/invalid-email":
+            return "Invalid email address. Please enter a valid email.";
+          case "auth/user-disabled":
+            return "User account is disabled. Contact support for assistance.";
+          case "auth/user-token-expired":
+            return "User session has expired. Please sign in again.";
+          case "auth/too-many-requests":
+            return "Too many sign-in attempts. Please try again later.";
+          case "auth/network-request-failed":
+            return "Network error. Check your internet connection.";
+          case "auth/internal-error":
+            return "Internal error occurred. Please try again later.";
+          case "auth/invalid-api-key":
+            return "Invalid Firebase API key. Check your configuration.";
+          case "auth/invalid-tenant-id":
+            return "Invalid tenant ID. Check your setup.";
+          case "auth/operation-not-supported-in-this-environment":
+            return "Sign-in not supported in this environment.";
+          default:
+            return "An error occurred. Please try again.";
+        }
+      },
+    });
+    // } catch (error) {
+    //   console.log(error);
+    //   window.location.href = "/";
+    // }
   };
 
   const possibleErrorsOnRedirectingSign = (error) => {
@@ -210,7 +209,7 @@ function Login() {
                 <h3>Find out where they are</h3>
               </div>
               <div className="key-img">
-                <img src={key} alt="error-display" />
+                <img src={key} alt="image-here" />
               </div>
             </div>
           </div>

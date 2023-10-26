@@ -92,6 +92,21 @@ input {
   padding: 2px;
 }
 
+.admin-path {
+  display: flex;
+  align-items: center;
+  margin: 0% 5%;
+  padding: 5% 2%;
+  border-radius: 0.55rem;
+  background-color: silver;
+  justify-content: space-around;
+}
+
+.admin-path:hover {
+  background-color: yellow;
+  cursor: pointer;
+}
+
 .Signout {
   background-color: rgb(10, 60, 95);
   color: #fff;

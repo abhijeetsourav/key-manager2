@@ -17,7 +17,6 @@ const ExternalSignup = () => {
           haskey: false,
           email: user.email,
           phone: phone.current,
-          alertMessage: false,
         }),
         {
           loading: "uploading doc to firebase database...",

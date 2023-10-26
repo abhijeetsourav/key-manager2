@@ -2,11 +2,10 @@ import {
   collection,
   query,
   where,
+  getDocs,
   getDoc,
   updateDoc,
   doc,
-  onSnapshot,
-  writeBatch,
 } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import "./style.css";
@@ -23,49 +22,28 @@ const Name = () => {
   const [keyHolder, setKeyHolder] = useState({ id: "", name: "", phone: "" });
   const [userIsKeyHolder, setUserIsKeyHolder] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // const [changingOwner, setChangingOwner] = useState(false);  /***************/
+  const [changingOwner, setChangingOwner] = useState(false);
   const currentUser = useContext(AuthContext);
-  const [requestingPersonsArr, setrequestingPersonsArr] = useState(
-    []
-  ); /*************/
-  const [userHasSentMsg, setUserHasSentMsg] =
-    useState(false); /*****************/
 
   useEffect(() => {
     const func = async () => {
       const q = query(collection(db, "users"), where("haskey", "==", true)); //querying who has keys
 
-      /**************Whenever there's a change in keyHolder***************/
-      const unsub2 = onSnapshot(q, (keyHolderSnapshot) => {
-        /************/
-        keyHolderSnapshot.forEach((keyHolder) => {
-          setKeyHolder({
-            name: keyHolder.data().name,
-            id: keyHolder.id,
-            phone: keyHolder.data().phone,
-          });
+      const keyHolderDocRef = await getDocs(q);
 
-          if (keyHolder.id === currentUser.id) {
-            setUserIsKeyHolder(true);
+      const keyHolderDoc = keyHolderDocRef.docs[0];
 
-            // object of persons who has requested for the keys  /***********/
-            const requests = query(
-              collection(db, "users"),
-              where("alertMessage", "==", true)
-            );
-            /**************On database updates (or) On alert-messages updates************/
-            const unsub1 = onSnapshot(requests, (querySnapshot) => {
-              /**************/
-              const arr = [];
-              querySnapshot.forEach((doc) => {
-                arr.unshift({ id: doc.id, name: doc.data().name });
-              });
-              setrequestingPersonsArr(arr);
-            });
-            /**************************************************************/
-          }
-        });
+      // contact button
+
+      setKeyHolder({
+        name: keyHolderDoc.data().name,
+        id: keyHolderDoc.id,
+        phone: keyHolderDoc.data().phone,
       });
+
+      if (keyHolderDoc.id === currentUser.id) {
+        setUserIsKeyHolder(true);
+      }
       setIsLoading(false);
     };
 
@@ -83,58 +61,41 @@ const Name = () => {
     }
   }, []);
 
-  /*************** SENDING AN ALERT MESSAGE TO THE CURRENT KEY OWNER *******************/
-  /****For members who are not having the keys*****/
-  const sendAnAlertMessage = async () => {
-    const currentUserDocRef = doc(db, "users", currentUser.id);
-    await updateDoc(currentUserDocRef, { alertMessage: true });
+  useEffect(() => {
+    const newOwner = async () => {
+      const keyHolderDocRef = doc(db, "users", keyHolder.id);
+      const currentUserDocRef = doc(db, "users", currentUser.id);
+      const currentUserDoc = await getDoc(currentUserDocRef);
 
-    setUserHasSentMsg(true);
-    setIsLoading(false);
-  };
-  /************************************************************************************/
+      await Promise.all([
+        updateDoc(currentUserDocRef, { haskey: true }),
+        updateDoc(keyHolderDocRef, { haskey: false }),
+      ]);
 
-  /***********************KEY OWNER ARENA*******************/
-  // useEffect(() => {
-  //   const newOwner = async () => {
-  //     const keyHolderDocRef = doc(db, "users", keyHolder.id);
-  //     const currentUserDocRef = doc(db, "users", currentUser.id);
-  //     const currentUserDoc = await getDoc(currentUserDocRef);
-
-  //     await Promise.all([
-  //       updateDoc(currentUserDocRef, { haskey: true }),
-  //       updateDoc(keyHolderDocRef, { haskey: false }),
-  //     ]);
-
-  //     setKeyHolder({
-  //       id: currentUserDoc.id,
-  //       name: currentUserDoc.data().name,
-  //       phone: currentUserDoc.data().phone,
-  //     });
-  //     setUserIsKeyHolder(true);
-  //     setIsLoading(false);
-  //     setChangingOwner(false);
-  //   };
-  //   if (changingOwner) {
-  //     try {
-  //       newOwner();
-  //     } catch (error) {
-  //       if (error.code === "permission-denied") {
-  //         toast.error("Permission denied:", error.message);
-  //       } else if (error.code === "not-found") {
-  //         toast.error("Document not found:", error.message);
-  //       } else {
-  //         toast.error("Firestore error:", error);
-  //       }
-  //     }
-  //   } else {
-  //   }
-  // }, [changingOwner]);
-
-  const changeOwner = async (id) => {
-    const currentUserDocRef = doc(db, "users", id);
-    await updateDoc(currentUserDocRef, { haskey: true });
-  };
+      setKeyHolder({
+        id: currentUserDoc.id,
+        name: currentUserDoc.data().name,
+        phone: currentUserDoc.data().phone,
+      });
+      setUserIsKeyHolder(true);
+      setIsLoading(false);
+      setChangingOwner(false);
+    };
+    if (changingOwner) {
+      try {
+        newOwner();
+      } catch (error) {
+        if (error.code === "permission-denied") {
+          toast.error("Permission denied:", error.message);
+        } else if (error.code === "not-found") {
+          toast.error("Document not found:", error.message);
+        } else {
+          toast.error("Firestore error:", error);
+        }
+      }
+    } else {
+    }
+  }, [changingOwner]);
 
   return (
     <>
@@ -190,16 +151,17 @@ const Name = () => {
                   >
                     Contact
                   </button>
+
                   {/* i have the key buttton */}
-                  {userIsKeyHolder || userHasSentMsg ? null /*************/ : (
+                  {userIsKeyHolder ? null : (
                     <button
                       onClick={() => {
                         if (
-                          window.confirm("are you sure you have the key ?") ===
+                          window.confirm("are you sure you have the key ?") ==
                           true
                         ) {
                           setIsLoading(true);
-                          sendAnAlertMessage(); /*************/
+                          setChangingOwner(true);
                         } else {
                         }
                       }}
@@ -208,54 +170,10 @@ const Name = () => {
                       i have the key
                     </button>
                   )}
+
                   {/* i have the key buttton */}
                 </div>
               </div>
-              {/*if user has sent a message to the owner of the key claiming the ownership of the key */}
-              {userHasSentMsg ? (
-                <div className="message-status-box">
-                  Wait until the owner responds to your message{" "}
-                </div>
-              ) : null}
-              {/***************************************************************/}
-              {/* Messages*/} {/**************************/}
-              {userIsKeyHolder && requestingPersonsArr.length && (
-                <div className="alert-messages">
-                  <div>
-                    Few persons are claiming the ownership of the keys? Have you
-                    passed on the keys to any of them?
-                  </div>
-                  <div className="keys-possesion-claimers">
-                    {requestingPersonsArr.map((doc) => {
-                      return (
-                        <div className="individual-keys-possesion-claimers">
-                          {doc.name}
-                          <button
-                            id={doc.id}
-                            onClick={(e) => {
-                              if (
-                                window.confirm(
-                                  `Are you sure you have passed the keys to ${doc.name} ?`
-                                ) === true
-                              ) {
-                                changeOwner(e.target.id);
-                              } else {
-                              }
-                            }}
-                          >
-                            yes
-                          </button>
-                        </div>
-                      );
-                    })}
-                    ;
-                  </div>
-                  <div>
-                    <button>None of them</button>
-                  </div>
-                </div>
-              )}
-              {/* Messages*/} {/*****************************/}
               <div className="main-gear">
                 <div className="container-gear">
                   <svg

@@ -1,5 +1,9 @@
 import React, { useState, useRef } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
 import { Link } from "react-router-dom";
 import { signInWithRedirect } from "firebase/auth";
 
@@ -22,7 +26,76 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async () => {
-    try {
+    const createUser = createUserWithEmailAndPassword(auth, email, password)
+      .then(async (cred) => {
+        try {
+          const uploadingDoc = setDoc(doc(db, "admin", cred.user.uid), {
+            name: username,
+            haskey: false,
+            email: email,
+            phone: phone.current,
+          });
+          await uploadingDoc();
+
+          toast.promise(uploadingDoc, {
+            loading: "uploading doc to firebase database...",
+            success: "Doc uploaded successfully",
+            error: (error) => {
+              toast.dismiss();
+              switch (error.code) {
+                case "permission-denied":
+                  return "Permission Denied: Check Firestore Security Rules";
+                case "unavailable":
+                  return "Network Error: Check your internet connection";
+                case "invalid-argument":
+                  return "Invalid Data Format: Check your data format";
+                case "already-exists":
+                  return "Document Already Exists: Use a unique document ID";
+                case "resource-exhausted":
+                  return "Rate Limit Exceeded: Implement rate limiting";
+                case "unauthenticated":
+                  return "Authentication Error: User is not authenticated";
+                case "quota-exceeded":
+                  return "Quota Exceeded: Check your Firebase billing and quotas";
+                default:
+                  return "An unknown error occurred: ", error;
+              }
+            },
+          });
+
+          const verifyEmail = Promise.all([
+            sendEmailVerification(auth.currentUser),
+            signOut(auth),
+          ]);
+          await verifyEmail();
+          toast.promise(verifyEmail, {
+            loading: "Wait for a moment",
+            success:
+              "A verification email has been sent to your mail id , verify your mail within 1 hour to access the app",
+            error: (error) => {
+              return error;
+            },
+          });
+        } catch (error) {
+          // console.log(error);
+        }
+      })
+      .catch((error) => {
+        // console.log(`error in creating user: ${error}`);
+      });
+    // createUser();
+    toast.promise(createUser, {
+      loading: "creating user.....",
+      success: "a user has been created",
+      error: (error) => {
+        return `error in creating user: ${error}`;
+      },
+    });
+    const inputBoxes = document.querySelectorAll("input");
+    for (let inputBox of inputBoxes) {
+      inputBox.value = "";
+    }
+    /*try {
       await toast.promise(
         createUserWithEmailAndPassword(auth, email, password).then(
           async (cred) => {
@@ -32,7 +105,6 @@ export default function Signup() {
                 haskey: false,
                 email: email,
                 phone: phone.current,
-                alertMessage: false,
               }),
               {
                 loading: "uploading doc to firebase database...",
@@ -105,7 +177,7 @@ export default function Signup() {
           },
         }
       );
-    } catch (error) {}
+    } catch (error) {}*/
   };
 
   const possibleErrorsOnRedirectingSignup = (error) => {

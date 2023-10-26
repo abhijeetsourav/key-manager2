@@ -1,0 +1,44 @@
+.button {
+  cursor: pointer;
+}
+.nav-bar {
+}
+.unselected-nav-bar-li-element {
+  display: inline-block;
+  width: 33%;
+  padding: 2%;
+  background-color: aliceblue;
+}
+.selected-nav-bar-li-element {
+  display: inline-block;
+  width: 33%;
+  padding: 2%;
+  background-color: blue;
+  color: white;
+  border-radius: 5%;
+}
+
+.nav-bar > ul > li:hover {
+  background-color: blue;
+  color: white;
+  border-radius: 5%;
+}
+
+.new-mem-req-li-element,
+.reg-mem-li-element {
+  display: flex;
+}
+
+.new-mem-req-div-element,
+.reg-mem-div-element {
+  display: flex;
+  justify-content: space-between;
+  width: 100vw;
+  background-color: papayawhip;
+  padding: 2% 1%;
+  border: 2px solid green;
+}
+.new-mem-req-div-element:hover,
+.reg-mem-div-element:hover {
+  background-color: gray;
+}
