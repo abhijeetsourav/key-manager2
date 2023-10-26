@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "@firebase/auth";
+import { signOut } from "firebase/auth";
 import { getDoc, doc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { auth, db } from "../firebase";
@@ -13,19 +14,59 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          var authUser = auth.currentUser;
-          if (userDoc.data()) {
-            setCurrentUser({ id: user.uid, name: userDoc.data().name });
-          } else {
-            authUser.providerData.forEach(function (profile) {
-              if (profile.providerId === "password") {
-                setCurrentUser("doc upload pending...");
-              } else if (profile.providerId === "google.com") {
-                setCurrentUser("external signup doc upload pending...");
+          const url = window.location.href;
+          const parsedUrl = new URL(url);
+          const pathname = parsedUrl.pathname;
+          if (user.emailVerified) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            var authUser = auth.currentUser;
+            if (userDoc.data()) {
+              setCurrentUser({ id: user.uid, name: userDoc.data().name });
+            } else {
+              const userDocRef = doc(db, "admin", user.uid);
+              const userDoc = await getDoc(userDocRef);
+              if (userDoc.data()) {
+                if (pathname === "/") {
+                  await toast.promise(setTimeout(signOut(auth), 3000), {
+                    loading:
+                      "Your request to access the app is pending with our admin",
+                    success: "please wait for them to give you access",
+                    error: (error) => {
+                      toast.dismiss();
+                      return error;
+                    },
+                  });
+                  const inputBoxes = document.querySelectorAll("input");
+                  for (let inputBox of inputBoxes) {
+                    inputBox.value = "";
+                  }
+                }
+              } else {
+                authUser.providerData.forEach(function (profile) {
+                  if (profile.providerId === "password") {
+                    setCurrentUser("doc upload pending...");
+                  } else if (profile.providerId === "google.com") {
+                    setCurrentUser("external signup doc upload pending...");
+                  }
+                });
               }
-            });
+            }
+          } else {
+            if (pathname === "/") {
+              await toast.promise(signOut(auth), {
+                loading: "",
+                success: "please verify to continue",
+                error: (error) => {
+                  toast.dismiss();
+                  return error;
+                },
+              });
+              const inputBoxes = document.querySelectorAll("input");
+              for (let inputBox of inputBoxes) {
+                inputBox.value = "";
+              }
+            }
           }
         } else {
           setCurrentUser("null");

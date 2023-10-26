@@ -12,11 +12,19 @@ import PublicRoute from "./routes/publicroute";
 
 import { AuthContext } from "./components/auth";
 import ExternalSignup from "./components/signup/external-signup-doc";
+import AdminPanel from "./components/admin/admin-panel";
 
 function App() {
   const currentUser = useContext(AuthContext);
-  // console.log("hola");
-  // window.confirm("whatcha doin");
+  // const isJavaScriptEnabled = navigator.javaScriptEnabled;
+
+  // if (isJavaScriptEnabled) {
+  //   // JavaScript is enabled.
+  //   console.log("isJavaScriptEnabled: ", isJavaScriptEnabled);
+  // } else {
+  //   // JavaScript is disabled.
+  //   console.log("js is not enabled");
+  // }
 
   return (
     <BrowserRouter>
@@ -37,6 +45,12 @@ function App() {
             path="/home"
             element={
               <PrivateRoute currentUser={currentUser} Component={Name} />
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute currentUser={currentUser} Component={AdminPanel} />
             }
           />
           <Route

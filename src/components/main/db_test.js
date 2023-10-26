@@ -10,7 +10,7 @@ import {
   deleteDoc,
   writeBatch,
 } from "firebase/firestore";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./style.css";
 import "./gears.css";
 import cyborglogo from "./cyborg-logo.png";
@@ -20,6 +20,7 @@ import { AuthContext } from "../auth";
 import LoadingSign from "../loader/loader";
 import Signout from "../signout/signout";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Name = () => {
   const [keyHolder, setKeyHolder] = useState({ id: "", name: "", phone: "" });
@@ -28,9 +29,21 @@ const Name = () => {
   const currentUser = useContext(AuthContext);
   const [claimingPersonsArr, setClaimingPersonsArr] = useState([]); //************
   const [userHasSentMsg, setUserHasSentMsg] = useState(false); //************
+  const userIsAdmin = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const q = query(collection(db, "users"), where("haskey", "==", true)); //querying who has keys
+    const adminDocRef = doc(db, "admin-users", currentUser.id);
+
+    getDoc(adminDocRef).then((adminDoc) => {
+      //checking whether the user is admin or not
+      if (adminDoc.exists()) {
+        userIsAdmin.current = true;
+      } else {
+        userIsAdmin.current = false;
+      }
+    });
     //snaphot of query(who is having the keys)//
     const queryListener = onSnapshot(q, (keyHolderSnapshot) => {
       try {
@@ -142,6 +155,19 @@ const Name = () => {
                   <h2 className="app-name">Key Manager</h2>
                 </div>
               </div>
+              {userIsAdmin ? (
+                <div
+                  className="admin-path"
+                  onClick={() => {
+                    navigate("/admin");
+                  }}
+                >
+                  <div>
+                    <img src="" alt="admin" />
+                  </div>
+                  <div>Admin</div>
+                </div>
+              ) : null}
 
               <div className="btn-signout-container">
                 <Signout></Signout>
