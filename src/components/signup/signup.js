@@ -27,17 +27,36 @@ export default function Signup() {
 
   const handleSignup = async () => {
     const createUser = createUserWithEmailAndPassword(auth, email, password)
-      .then(async (cred) => {
-        try {
-          const uploadingDoc = setDoc(doc(db, "admin", cred.user.uid), {
-            name: username,
-            haskey: false,
-            email: email,
-            phone: phone.current,
+      .then((cred) => {
+        toast.success("User has been created.");
+        const uploadingDoc = setDoc(doc(db, "admin", cred.user.uid), {
+          name: username,
+          haskey: false,
+          email: email,
+          phone: phone.current,
+        })
+          .then(async () => {
+            toast.dismiss();
+            toast.success("Doc has been uploaded to admin collection");
+            const verifyEmail = await Promise.all([
+              sendEmailVerification(auth.currentUser),
+              signOut(auth),
+            ]);
+            toast.dismiss();
+            toast.success("email has been sent");
+          })
+          .catch((error) => {
+            toast.dismiss();
+            toast.error(error);
           });
-          await uploadingDoc();
+      })
+      .catch((error) => {
+        toast.dismiss();
+        toast.error(error);
+      });
+    // await uploadingDoc();
 
-          toast.promise(uploadingDoc, {
+    /*toast.promise(uploadingDoc, {
             loading: "uploading doc to firebase database...",
             success: "Doc uploaded successfully",
             error: (error) => {
@@ -61,37 +80,26 @@ export default function Signup() {
                   return "An unknown error occurred: ", error;
               }
             },
-          });
+          }); */
 
-          const verifyEmail = Promise.all([
-            sendEmailVerification(auth.currentUser),
-            signOut(auth),
-          ]);
-          await verifyEmail();
-          toast.promise(verifyEmail, {
+    // await verifyEmail();
+    /*toast.promise(verifyEmail, {
             loading: "Wait for a moment",
             success:
               "A verification email has been sent to your mail id , verify your mail within 1 hour to access the app",
             error: (error) => {
               return error;
             },
-          });
-        } catch (error) {
-          // console.log(error);
-        }
-      })
-      .catch((error) => {
-        // console.log(`error in creating user: ${error}`);
-      });
+          });*/
     // createUser();
-    toast.promise(createUser, {
+    /*toast.promise(createUser, {
       loading: "creating user.....",
       success: "a user has been created",
       error: (error) => {
         return `error in creating user: ${error}`;
       },
-    });
-    const inputBoxes = document.querySelectorAll("input");
+    });*/
+    const inputBoxes = document.querySelectorAll(".input-field");
     for (let inputBox of inputBoxes) {
       inputBox.value = "";
     }
@@ -327,7 +335,7 @@ export default function Signup() {
                     />
                   </div>
 
-                  {/* passord field  */}
+                  {/* password field  */}
                   <div className="input-wrap">
                     <input
                       className="input-field"
@@ -361,13 +369,6 @@ export default function Signup() {
                       }
                     }}
                   />
-                </div>
-
-                <div className="error-box">
-                  <p className="message" style={{ display: "none" }}>
-                    Signing you in....
-                  </p>
-                  <p className="error-message">{errorMessage}</p>
                 </div>
               </div>
             </div>
