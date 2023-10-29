@@ -44,6 +44,7 @@ const Name = () => {
         userIsAdmin.current = false;
       }
     });
+    // console.log(userIsAdmin);
     //snaphot of query(who is having the keys)//
     const queryListener = onSnapshot(q, (keyHolderSnapshot) => {
       try {
@@ -155,17 +156,17 @@ const Name = () => {
                   <h2 className="app-name">Key Manager</h2>
                 </div>
               </div>
-              {userIsAdmin ? (
+              {userIsAdmin.current ? (
                 <div
                   className="admin-path"
                   onClick={() => {
                     navigate("/admin");
                   }}
                 >
-                  <div>
+                  {/*<div>
                     <img src="" alt="admin" />
-                  </div>
-                  <div>Admin</div>
+                </div>*/}
+                  <p className="admin-heading">Admin</p>
                 </div>
               ) : null}
 
@@ -205,8 +206,12 @@ const Name = () => {
                     Contact
                   </button>
                   {/* i have the key buttton */}
-                  {userIsKeyHolder || userHasSentMsg ? null /*************/ : (
-                    <button
+                  {userIsKeyHolder || userHasSentMsg ? (
+                    <button onClick={() => {}} className="change-owner">
+                      Requests
+                    </button>
+                  ) : (
+                    /*************/ <button
                       onClick={() => {
                         if (
                           window.confirm("are you sure you have the key ?") ===

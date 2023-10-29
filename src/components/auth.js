@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
                       return error;
                     },
                   });
-                  const inputBoxes = document.querySelectorAll("input");
+                  const inputBoxes = document.querySelectorAll("input-field");
                   for (let inputBox of inputBoxes) {
                     inputBox.value = "";
                   }

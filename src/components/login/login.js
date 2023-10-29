@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Link } from "react-router-dom";
 import { signInWithRedirect } from "firebase/auth";
@@ -10,16 +10,17 @@ import LoadingSign from "../loader/loader";
 import "./login.css";
 
 function Login() {
+  const rollNo = useRef("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorTrigger, setErrorTrigger] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("Enter valid details");
 
   // new toast promise here
 
   const handleLogin = async () => {
-    // try {
-    // Display a loading toast while waiting for authentication
-    // const loadingToast = toast.loading("Logging in...");signInWithEmailAndPassword(auth, email, password)
+    setEmail(rollNo.current + "@nitrkl.ac.in");
     const userLogin = signInWithEmailAndPassword(auth, email, password);
 
     toast.promise(userLogin, {
@@ -30,11 +31,11 @@ function Login() {
         // Customize error messages based on error code
         switch (error.code) {
           case "auth/user-not-found":
-            return "User not found. Please check your email.";
+            return "User not found. Please check your Roll No.";
           case "auth/wrong-password":
             return "Incorrect password. Please try again.";
           case "auth/invalid-email":
-            return "Invalid email address. Please enter a valid email.";
+            return "Invalid Roll No. Please enter a valid Roll No.";
           case "auth/user-disabled":
             return "User account is disabled. Contact support for assistance.";
           case "auth/user-token-expired":
@@ -56,10 +57,6 @@ function Login() {
         }
       },
     });
-    // } catch (error) {
-    //   console.log(error);
-    //   window.location.href = "/";
-    // }
   };
 
   const possibleErrorsOnRedirectingSign = (error) => {
@@ -110,7 +107,7 @@ function Login() {
     } else if (error.code === "auth/operation-not-allowed") {
       toast.error("Authentication operation not allowed.");
     } else {
-      console.error("An unexpected error occurred:", error);
+      toast.error("An unexpected error occurred:", error);
     }
   };
 
@@ -135,8 +132,8 @@ function Login() {
                     Signup
                   </Link>
                 </div>
-                <div className="other-links">
-                  {/* google login  */}
+                {/* <div className="other-links">
+                  google login 
                   <div
                     className="other-links-google"
                     onClick={async () => {
@@ -163,18 +160,31 @@ function Login() {
                     </svg>
                     <p className="continue-google"> google-login </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="actual-form">
                   <div className="input-wrap">
                     {/* email input for login  */}
-                    <input
-                      className="input-field"
-                      placeholder="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                    <div className="input-wrap">
+                      <input
+                        className="input-field"
+                        type="text"
+                        id="email"
+                        placeholder="Enter your Roll No"
+                        onChange={(e) => {
+                          // console.log(rollNo + "nitrkl.ac.in");
+                          // phone.current = e.target.value;
+                          rollNo.current = e.target.value;
+                          const regexValid = /^\d{3}[a-zA-Z]{2}\d{4}$/;
+                          setErrorTrigger(regexValid.test(rollNo.current));
+                          if (regexValid.test(rollNo.current) == false) {
+                            setErrorMessage("Enter valid Roll no");
+                          } else {
+                            setErrorMessage("Please check all fields");
+                          }
+                        }}
+                      />
+                    </div>
                     {/* <label className="email">email</label> */}
                   </div>
 
@@ -183,9 +193,12 @@ function Login() {
                     <input
                       className="input-field"
                       type="password"
+                      id="password"
                       placeholder="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                      }}
                     />
                     {/* <label className="pass">password</label> */}
                   </div>
@@ -193,7 +206,13 @@ function Login() {
                     type="submit"
                     value="Sign IN"
                     className="login-button sign-btn"
-                    onClick={handleLogin}
+                    onClick={() => {
+                      if (errorTrigger && document.querySelector("#password")) {
+                        handleLogin();
+                      } else {
+                        toast.error(errorMessage);
+                      }
+                    }}
                   />
                 </div>
               </div>

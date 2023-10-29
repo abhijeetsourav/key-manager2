@@ -5,7 +5,6 @@ import {
   signOut,
 } from "firebase/auth";
 import { Link } from "react-router-dom";
-import { signInWithRedirect } from "firebase/auth";
 
 import key from "./key.png";
 import logo from "./cyborg-logo.png";
@@ -19,13 +18,16 @@ import toast from "react-hot-toast";
 
 export default function Signup() {
   const [username, setUsername] = useState("");
+  const rollNo = useRef("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const phone = useRef("");
-  const [errorMessage, setErrorMessage] = useState(true);
+  const [errorTrigger, setErrorTrigger] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("Enter valid details");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async () => {
+    setEmail(rollNo + "nitrkl.ac.in");
     const createUser = createUserWithEmailAndPassword(auth, email, password)
       .then(async (cred) => {
         try {
@@ -58,12 +60,14 @@ export default function Signup() {
                 case "quota-exceeded":
                   return "Quota Exceeded: Check your Firebase billing and quotas";
                 default:
-                  return "An unknown error occurred: ", error;
+                  return "An unknown error occurred: ";
               }
             },
           });
+          // console.log("verify email start .....");
 
           const verifyEmail = Promise.all([
+            uploadingDoc(),
             sendEmailVerification(auth.currentUser),
             signOut(auth),
           ]);
@@ -252,7 +256,7 @@ export default function Signup() {
                     Login
                   </Link>{" "}
                 </div>
-                <div className="other-links">
+                {/* <div className="other-links">
                   <div
                     className="other-links-google"
                     onClick={async () => {
@@ -282,7 +286,7 @@ export default function Signup() {
                     </svg>
                     <p className="continue-google"> google-login </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="actual-form">
                   {/* username field  */}
@@ -293,19 +297,32 @@ export default function Signup() {
                       id="username"
                       placeholder="Enter your full name"
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        if (e.target.value == "") {
+                          setErrorMessage("Enter a valid username");
+                        }
+                      }}
                     />
                   </div>
                   {/* email field  */}
                   <div className="input-wrap">
                     <input
                       className="input-field"
-                      type="email"
+                      type="text"
                       id="email"
-                      placeholder="Enter your email"
-                      value={email}
+                      placeholder="Enter your Roll No"
                       onChange={(e) => {
-                        setEmail(e.target.value);
+                        // console.log(rollNo + "nitrkl.ac.in");
+                        // phone.current = e.target.value;
+                        rollNo.current = e.target.value;
+                        const regexValid = /^\d{3}[a-zA-Z]{2}\d{4}$/;
+                        setErrorTrigger(regexValid.test(rollNo.current));
+                        if (regexValid.test(rollNo.current) == false) {
+                          setErrorMessage("Enter valid Roll no");
+                        } else {
+                          setErrorMessage("Please check all fields");
+                        }
                       }}
                     />
                   </div>
@@ -320,7 +337,12 @@ export default function Signup() {
                       onChange={(e) => {
                         phone.current = e.target.value;
                         const regexValid = /^[0-9]{10}/;
-                        setErrorMessage(regexValid.test(phone.current));
+                        setErrorTrigger(regexValid.test(phone.current));
+                        if (regexValid.test(phone.current) == false) {
+                          setErrorMessage("Enter valid phone no");
+                        } else {
+                          setErrorMessage("Please check all fields");
+                        }
                       }}
                       maxLength="10"
                       minLength="10"
@@ -347,28 +369,26 @@ export default function Signup() {
                       const usernameRequired =
                         document.querySelector("#username");
                       const passwordRequired =
-                        document.querySelector("#phone-number");
+                        document.querySelector("#password");
                       if (
                         usernameRequired.value &&
                         passwordRequired.value &&
-                        errorMessage
+                        errorTrigger
                       ) {
                         handleSignup();
                       } else {
-                        toast.error(
-                          "Username or Phone Number Not entered correctly"
-                        );
+                        toast.error(errorMessage);
                       }
                     }}
                   />
                 </div>
 
-                <div className="error-box">
+                {/* <div className="error-box">
                   <p className="message" style={{ display: "none" }}>
                     Signing you in....
                   </p>
                   <p className="error-message">{errorMessage}</p>
-                </div>
+                </div> */}
               </div>
             </div>
 

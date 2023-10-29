@@ -80,31 +80,44 @@ input {
 .btn-signout-container {
   /* background-color: blue; */
   border: 2px solid rgb(33, 42, 83);
-  border-radius: 5rem;
+  border-radius: 0.6rem;
   margin-top: 20px;
   position: relative;
-  top: -2%;
-  left: 50%;
+  top: -2.3%;
+  left: 70%;
   transform: translateX(-50%);
   max-width: 40%;
   width: 35%;
-  height: 10%;
+  height: 60px;
   padding: 2px;
 }
 
 .admin-path {
+  position: relative;
+  top: 37%;
+  left: 10px;
   display: flex;
+  width: 35%;
+  height: 58px;
   align-items: center;
   margin: 0% 5%;
   padding: 5% 2%;
   border-radius: 0.55rem;
-  background-color: silver;
+  background-color: yellow;
   justify-content: space-around;
 }
 
 .admin-path:hover {
-  background-color: yellow;
+  background-color: rgb(10, 60, 95);
+
   cursor: pointer;
+}
+.admin-path:hover .admin-heading {
+  cursor: pointer;
+  color: whitesmoke;
+}
+.admin-heading {
+  color: black;
 }
 
 .Signout {
@@ -112,7 +125,7 @@ input {
   color: #fff;
   padding: 10px 20px;
   border: none;
-  border-radius: 5rem;
+  border-radius: 0.6rem;
   cursor: pointer;
   width: 100%;
   height: 100%;
@@ -185,6 +198,7 @@ input {
 }
 
 .contact-button:hover {
+  box-sizing: border-box;
   border: 2px solid rgb(33, 42, 83);
   background-color: rgb(233, 233, 233); /* Contrasting color for hover */
   color: rgb(33, 42, 83);
@@ -356,18 +370,34 @@ input {
   }
   .btn-signout-container {
     position: absolute;
-    min-width: fit-content;
-    height: fit-content;
+    width: 130px;
+    height: 50px;
     border-radius: 0.55rem;
-    top: 80%;
+    top: 75%;
     border: 2px solid rgb(253, 210, 71);
-    left: 50%;
+    left: 40%;
     transform: translateX(-100%);
   }
   .Signout {
     border-radius: 0.5rem;
     font-weight: 400;
     background-color: rgb(253, 210, 71);
+  }
+
+  .admin-path {
+    position: absolute;
+    background-color: rgb(10, 60, 95);
+    width: 130px;
+    height: 50px;
+    border-radius: 0.55rem;
+    top: 87%;
+    border: 2px solid rgb(33, 42, 83);
+    left: 35%;
+    transform: translateX(-100%);
+  }
+
+  .admin-heading {
+    color: whitesmoke;
   }
   .key-owner-name {
     font-weight: 400;
