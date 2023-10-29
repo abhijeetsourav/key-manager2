@@ -9,9 +9,9 @@ import { Link } from "react-router-dom";
 import key from "./key.png";
 import logo from "./cyborg-logo.png";
 
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
-import { db, auth, googleProvider } from "../../firebase";
+import { db, auth } from "../../firebase";
 import LoadingSign from "../loader/loader";
 import "./signup.css";
 import toast from "react-hot-toast";
@@ -299,7 +299,7 @@ export default function Signup() {
                       value={username}
                       onChange={(e) => {
                         setUsername(e.target.value);
-                        if (e.target.value == "") {
+                        if (e.target.value === "") {
                           setErrorMessage("Enter a valid username");
                         }
                       }}
