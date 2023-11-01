@@ -8,7 +8,7 @@ import {
   doc,
   getDoc,
   deleteDoc,
-  getDocs,
+  writeBatch,
 } from "firebase/firestore";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import "./style.css";
@@ -22,33 +22,21 @@ import Signout from "../signout/signout";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-import Requests from "./requests";
-
 const Name = () => {
   const [keyHolder, setKeyHolder] = useState({ id: "", name: "", phone: "" });
   const [userIsKeyHolder, setUserIsKeyHolder] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUser, unsubscribe] = useContext(AuthContext);
-  const [claimingPersonsArr, setClaimingPersonsArr] = useState([]); //************
-  const [userHasSentMsg, setUserHasSentMsg] = useState(false); //************
+  // const { currentUser } = useContext(AuthContext);
+  const currentUser = useContext(AuthContext);
+  const [claimingPersonsArr, setClaimingPersonsArr] = useState([]);
+  const [userHasSentMsg, setUserHasSentMsg] = useState(false);
   const userIsAdmin = useRef(false);
   const navigate = useNavigate();
-
-  //************* popup
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-  //************* popup ends
 
   useEffect(() => {
     const q = query(collection(db, "users"), where("haskey", "==", true)); //querying who has keys
     const adminDocRef = doc(db, "admin-users", currentUser.id);
 
-    // const keyClaimersCollection = collection(db, "key-claimers");
-    // getDocs(keyClaimersCollection).then((collection) => {
-    //   collection.forEach((doc) => {
-    //     console.log(doc);
-    //   });
-    // });
     getDoc(adminDocRef).then((adminDoc) => {
       //checking whether the user is admin or not
       if (adminDoc.exists()) {
@@ -57,7 +45,6 @@ const Name = () => {
         userIsAdmin.current = false;
       }
     });
-    // console.log(userIsAdmin);
     //snaphot of query(who is having the keys)//
     const queryListener = onSnapshot(q, (keyHolderSnapshot) => {
       try {
@@ -89,7 +76,6 @@ const Name = () => {
           onSnapshot(keyClaimersCollection, async (collecSnapshot) => {
             try {
               //checking whether user is keyHolder or not
-              console.log("curreny user doc");
               if (keyHolder.id === currentUser.id) {
                 const arr = [];
                 collecSnapshot.forEach((doc) => {
@@ -102,12 +88,7 @@ const Name = () => {
                   "key-claimers",
                   currentUser.id
                 );
-                // const currentUserDoc = await getDoc(currentUserDocRef);
-
                 const currentUserDoc = await getDoc(currentUserDocRef);
-
-                console.log(currentUserDoc);
-
                 if (currentUserDoc.exists()) {
                   setUserHasSentMsg(true);
                 } else {
@@ -115,13 +96,13 @@ const Name = () => {
                 }
               }
             } catch (error) {
-              console.log(error);
+              // console.log(error);
             }
           });
           //-----------------------------------------------------------------------------------------//
         });
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     });
 
@@ -152,8 +133,12 @@ const Name = () => {
       updateDoc(currentKeyHolderDocRef, { haskey: false }),
       updateDoc(newKeyHolderDocRef, { haskey: true }),
     ]);
-    //deleting new key-holder's request message
-    await deleteDoc(doc(db, "key-claimers", id));
+    ///////// deleting all the request messages //////////
+    const batch = writeBatch(db);
+    claimingPersonsArr.forEach((member) => {
+      batch.delete(doc(db, "key-claimers", member.id));
+    });
+    await batch.commit();
   };
   /*********************************************************/
 
@@ -175,24 +160,22 @@ const Name = () => {
                   <h2 className="app-name">Key Manager</h2>
                 </div>
               </div>
-              <div className="side-aisle-btn-container">
-                {userIsAdmin.current ? (
-                  <div
-                    className="admin-path"
-                    onClick={() => {
-                      navigate("/admin");
-                    }}
-                  >
-                    {/*<div>
+              {userIsAdmin.current ? (
+                <div
+                  className="admin-path"
+                  onClick={() => {
+                    navigate("/admin");
+                  }}
+                >
+                  <div>
                     <img src="" alt="admin" />
-                </div>*/}
-                    <p className="admin-heading">Admin</p>
                   </div>
-                ) : null}
-
-                <div className="btn-signout-container">
-                  <Signout></Signout>
+                  <div>Admin</div>
                 </div>
+              ) : null}
+
+              <div className="btn-signout-container">
+                <Signout></Signout>
               </div>
             </div>
 
@@ -227,27 +210,8 @@ const Name = () => {
                     Contact
                   </button>
                   {/* i have the key buttton */}
-                  {console.log(userHasSentMsg)}
-                  {userIsKeyHolder ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setIsPopupOpen(true);
-                        }}
-                        className="change-owner"
-                      >
-                        Requests
-                      </button>
-                      <Requests
-                        trigger={isPopupOpen}
-                        setTrigger={setIsPopupOpen}
-                        keyClaimersCollection={claimingPersonsArr}
-                        newOwner={changeOwner}
-                      ></Requests>
-                    </>
-                  ) : //request pop up ends
-                  userHasSentMsg ? null : (
-                    /*************/ <button
+                  {userIsKeyHolder || userHasSentMsg ? null /*************/ : (
+                    <button
                       onClick={() => {
                         if (
                           window.confirm("are you sure you have the key ?") ===
@@ -269,15 +233,18 @@ const Name = () => {
               </div>
               {/*if user has sent a message to the owner of the key claiming the ownership of the key */}
               {userHasSentMsg ? (
-                <div className="sent-message-status-box">
+                <div className="message-status-box">
                   Wait until the key-holder responds to your message{" "}
                 </div>
               ) : null}
               {/***************************************************************/}
               {/* Messages-start*/} {/**************************/}
-              {/* {userIsKeyHolder && claimingPersonsArr.length && (
+              {userIsKeyHolder && claimingPersonsArr.length && (
                 <div className="alert-messages">
-                  
+                  <div>
+                    Few persons are claiming the ownership of the keys? Have you
+                    passed on the keys to any of them?
+                  </div>
                   <div className="keys-possesion-claimers">
                     {claimingPersonsArr.map((doc) => {
                       return (
@@ -309,7 +276,7 @@ const Name = () => {
                     </button>
                   </div>
                 </div>
-              )} */}
+              )}
               {/* Messages-end*/} {/*****************************/}
               <div className="main-gear">
                 <div className="container-gear">

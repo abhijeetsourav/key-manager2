@@ -1,6 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "@firebase/auth";
-import { signOut } from "firebase/auth";
 import { getDoc, doc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { auth, db } from "../firebase";
@@ -9,68 +8,49 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState("fetching...");
-  const passUnsubscribe = onAuthStateChanged(auth, async () => {});
+  // const [unsubscribe, setUnsubscribe] = useState(null);
 
   useEffect(() => {
-    // console.log("component did mount");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
-        // console.log(`inside onAuthstateChanged listener callback function:`);
         // console.log(user);
         if (user) {
-          const url = window.location.href;
-          const parsedUrl = new URL(url);
-          const pathname = parsedUrl.pathname;
           if (user.emailVerified) {
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
-            var authUser = auth.currentUser;
+            // var authUser = auth.currentUser;
             if (userDoc.data()) {
               setCurrentUser({ id: user.uid, name: userDoc.data().name });
             } else {
-              const userDocRef = doc(db, "admin", user.uid);
-              const userDoc = await getDoc(userDocRef);
-              if (userDoc.data()) {
-                if (pathname === "/") {
-                  await toast.promise(setTimeout(signOut(auth), 3000), {
-                    loading:
-                      "Your request to access the app is pending with our admin",
-                    success: "please wait for them to give you access",
-                    error: (error) => {
-                      toast.dismiss();
-                      return error;
-                    },
-                  });
-                  const inputBoxes = document.querySelectorAll("input-field");
-                  for (let inputBox of inputBoxes) {
-                    inputBox.value = "";
-                  }
-                }
+              const adminUserDocRef = doc(db, "admin", user.uid);
+              const declinedUserDocRef = doc(db, "declined-requests", user.uid);
+              const adminUserDoc = await getDoc(adminUserDocRef);
+              const declinedUserDoc = await getDoc(declinedUserDocRef);
+
+              if (adminUserDoc.data()) {
+                setCurrentUser("App access pending...");
+              } else if (declinedUserDoc.data()) {
+                setCurrentUser("App access declined...");
               } else {
-                authUser.providerData.forEach(function (profile) {
-                  if (profile.providerId === "password") {
-                    setCurrentUser("doc upload pending...");
-                  } else if (profile.providerId === "google.com") {
-                    setCurrentUser("external signup doc upload pending...");
-                  }
-                });
+                setCurrentUser("doc upload pending...");
               }
-            }
-          } else {
-            // console.log(`user.emailVerified: ${user.emailVerified}`);
-            if (pathname === "/") {
-              await toast.promise(signOut(auth), {
-                loading: "",
-                success: "please verify to continue",
-                error: (error) => {
-                  toast.dismiss();
-                  return error;
-                },
-              });
-              const inputBoxes = document.querySelectorAll("input");
+
+              const inputBoxes = document.querySelectorAll(".input-field");
               for (let inputBox of inputBoxes) {
                 inputBox.value = "";
               }
+            }
+          } else {
+            const adminUserDocRef = doc(db, "admin", user.uid);
+            const adminUserDoc = await getDoc(adminUserDocRef);
+            if (!adminUserDoc.data()) {
+              setCurrentUser(`Email verification pending in signup...`);
+            } else {
+              setCurrentUser("Email verification pending...");
+            }
+            const inputBoxes = document.querySelectorAll(".input-field");
+            for (let inputBox of inputBoxes) {
+              inputBox.value = "";
             }
           }
         } else {
@@ -86,17 +66,13 @@ export const AuthProvider = ({ children }) => {
         }
       }
     });
-
-    // console.log("unsubcribe" + unsubscribe);
-    // return unsubscribe;
-
-    // setPassUnsubscribe(unsubscribe);
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  // console.log(passUnsubscribe);
-  // console.log([currentUser, passUnsubscribe]);
   return (
-    <AuthContext.Provider value={[currentUser, passUnsubscribe]}>
+    <AuthContext.Provider value={currentUser}>
       {" "}
       {children}{" "}
     </AuthContext.Provider>
