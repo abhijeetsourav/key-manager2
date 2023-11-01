@@ -23,10 +23,12 @@ import push from "./components/notification";
 //messasge trial ends
 
 function App() {
-  const currentUser = useContext(AuthContext);
+  // const currentUser = useContext(AuthContext);
+  const [currentUser, unsubscribe] = useContext(AuthContext);
 
   // Notification permission
 
+  // console.log(typeof currentUser);
   async function notificationPermission() {
     const permission = await Notification.requestPermission();
 
@@ -36,7 +38,7 @@ function App() {
         vapidKey:
           "BFMPBroQEd4Bl5PV-VbCAaBlClizBohZrR-Nkr_G6odIU6jqkMhtyCLZssViUsk5TWtBtNWMoZ2sDAS73HNPy6w",
       });
-      // console.log("token", token);
+      console.log("token == ", token);
       push();
     } else if (permission === "denied") {
       alert("notification access was not given");

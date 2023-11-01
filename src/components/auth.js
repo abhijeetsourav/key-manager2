@@ -9,10 +9,14 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState("fetching...");
+  const passUnsubscribe = onAuthStateChanged(auth, async () => {});
 
   useEffect(() => {
+    // console.log("component did mount");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
+        // console.log(`inside onAuthstateChanged listener callback function:`);
+        // console.log(user);
         if (user) {
           const url = window.location.href;
           const parsedUrl = new URL(url);
@@ -53,6 +57,7 @@ export const AuthProvider = ({ children }) => {
               }
             }
           } else {
+            // console.log(`user.emailVerified: ${user.emailVerified}`);
             if (pathname === "/") {
               await toast.promise(signOut(auth), {
                 loading: "",
@@ -81,10 +86,17 @@ export const AuthProvider = ({ children }) => {
         }
       }
     });
+
+    // console.log("unsubcribe" + unsubscribe);
+    // return unsubscribe;
+
+    // setPassUnsubscribe(unsubscribe);
   }, []);
 
+  // console.log(passUnsubscribe);
+  // console.log([currentUser, passUnsubscribe]);
   return (
-    <AuthContext.Provider value={currentUser}>
+    <AuthContext.Provider value={[currentUser, passUnsubscribe]}>
       {" "}
       {children}{" "}
     </AuthContext.Provider>

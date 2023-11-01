@@ -30,15 +30,28 @@ const AdminPanel = () => {
     const usersCollectionSnapshot = onSnapshot(
       collection(db, "users"),
       (collecSnapshot) => {
-        // console.log(collecSnapshot);
         collecSnapshot.docChanges().forEach((change) => {
-          // console.log(change.type);
           if (change.type === "added") {
+            setUsersDocs((prevDocs) => ({
+              ...prevDocs,
+              [change.doc.id]: change.doc.data(),
+            }));
           }
           if (change.type === "modified") {
-            // setMemberRequestsDocs({...usersDocs, change.doc})
+            setUsersDocs((prevDocs) => ({
+              ...prevDocs,
+              [change.doc.id]: {
+                ...prevDocs[change.doc.id],
+                ...change.doc.data(),
+              },
+            }));
           }
           if (change.type === "removed") {
+            setUsersDocs((prevState) => {
+              const newState = { ...prevState };
+              delete newState[change.doc.id];
+              return newState;
+            });
           }
         });
       }
@@ -55,15 +68,28 @@ const AdminPanel = () => {
     const requestsCollectionSnapshot = onSnapshot(
       collection(db, "admin"),
       (collecSnapshot) => {
-        // console.log(collecSnapshot);
         collecSnapshot.docChanges().forEach((change) => {
-          // console.log(change.type);
           if (change.type === "added") {
+            setMemberRequestsDocs((prevDocs) => ({
+              ...prevDocs,
+              [change.doc.id]: change.doc.data(),
+            }));
           }
           if (change.type === "modified") {
-            // setMemberRequestsDocs({...usersDocs, change.doc})
+            setMemberRequestsDocs((prevDocs) => ({
+              ...prevDocs,
+              [change.doc.id]: {
+                ...prevDocs[change.doc.id],
+                ...change.doc.data(),
+              },
+            }));
           }
           if (change.type === "removed") {
+            setMemberRequestsDocs((prevState) => {
+              const newState = { ...prevState };
+              delete newState[change.doc.id];
+              return newState;
+            });
           }
         });
       }
@@ -74,8 +100,7 @@ const AdminPanel = () => {
     };
   }, []);
 
-  const handleModifybtn = async (id) => {};
-  const handleDeletebtn = async (id) => {};
+  ///////////// Accepting a user //////////////
   const handleAcceptbtn = async (id) => {
     const docRef = doc(db, "admin", id);
     const document = await getDoc(docRef);
@@ -86,7 +111,7 @@ const AdminPanel = () => {
         success: "A new member has been succesfully added",
         error: (error) => {
           toast.dismiss();
-          console.log(error);
+          return error.code;
         },
       }
     );
@@ -95,62 +120,40 @@ const AdminPanel = () => {
       success: "All set",
       error: (error) => {
         toast.dismiss();
-        console.log(error);
+        return error.code;
       },
     });
   };
-  const handleDeclinebtn = async (id) => {};
-
-  // Object.keys(usersDocs).forEach((docKey) => {
-  //   console.log(typeof docKey);
-  // console.log(usersDocs.docKey());
-  // });
-  /*const grantPermission = async (id, object) => {
-    // adding data to the main database on successful permission by the admin
-    await toast.promise(setDoc(doc(db, "users", id), object), {
-      loading: "Giving member access to the app",
-      success: "Access granted",
+  ////////// Declining a user //////////
+  const handleDeclinebtn = async (id) => {
+    const docRef = doc(db, "admin", id);
+    const document = await getDoc(docRef);
+    await toast.promise(
+      setDoc(doc(db, "declined-requests", document.id), document.data()),
+      {
+        loading: "adding document to the declined members collection...",
+        success: "added succesfully",
+        error: (error) => {
+          toast.dismiss();
+          return error.code;
+        },
+      }
+    );
+    await toast.promise(deleteDoc(doc(db, "admin", document.id)), {
+      loading: "declining member request...",
+      success: "Member request declined successfully",
       error: (error) => {
         toast.dismiss();
-        switch (error.code) {
-          case "permission-denied":
-            return "Permission Denied: Check Firestore Security Rules";
-          case "unavailable":
-            return "Network Error: Check your internet connection";
-          case "invalid-argument":
-            return "Invalid Data Format: Check your data format";
-          case "already-exists":
-            return "Document Already Exists: Use a unique document ID";
-          case "resource-exhausted":
-            return "Rate Limit Exceeded: Implement rate limiting";
-          case "unauthenticated":
-            return "Authentication Error: User is not authenticated";
-          case "quota-exceeded":
-            return "Quota Exceeded: Check your Firebase billing and quotas";
-          default:
-            return "An unknown error occurred: ", error;
-        }
+        return error.code;
       },
     });
-  };*/
+  };
 
   return (
-    <>
-      <div className="main-body">
+    <div className="container">
+      <div className="admin-main-body">
         <div className="nav-bar">
-          <ul>
-            <li
-              className={
-                option === "Logs"
-                  ? "selected-nav-bar-li-element"
-                  : "unselected-nav-bar-li-element"
-              }
-              onClick={() => {
-                setOption("Logs");
-              }}
-            >
-              Logs
-            </li>
+          <ul className="nav-bar-list">
             <li
               className={
                 option === "Member Requests"
@@ -161,9 +164,10 @@ const AdminPanel = () => {
                 setOption("Member Requests");
               }}
             >
-              Member Requests
+              <p className="admin-p">Member Requests </p>
             </li>
             <li
+              id="registered-members"
               className={
                 option === "Registered Members"
                   ? "selected-nav-bar-li-element"
@@ -173,143 +177,122 @@ const AdminPanel = () => {
                 setOption("Registered Members");
               }}
             >
-              Registered members
+              <p className="admin-p">Registered members</p>
             </li>
           </ul>
         </div>
+        <div className="members-list">
+          {option === "Member Requests" ? (
+            <div>
+              <ul>
+                {Object.keys(memberRequestsDocs).map((docKey) => {
+                  return (
+                    <>
+                      <li className="new-mem-req-li-element">
+                        <div
+                          id={`new-mem-req-${docKey}`}
+                          className="new-mem-req-div-element"
+                          object={memberRequestsDocs}
+                          onClick={(e) => {
+                            const elements = document.querySelectorAll(
+                              ".new-mem-req-drop-down-ul-element"
+                            );
 
-        {option === "Logs" ? (
-          <>
-            <h1>Logs</h1>
-          </>
-        ) : option === "Member Requests" ? (
-          <>
-            <h1>New Member Requests</h1>
-            <ul>
-              {Object.keys(memberRequestsDocs).map((docKey) => {
-                return (
-                  <>
-                    <li className="new-mem-req-li-element">
-                      <div
-                        id={`new-mem-req-${docKey}`}
-                        className="new-mem-req-div-element"
-                        object={memberRequestsDocs}
-                        onClick={(e) => {
-                          const elements = document.querySelectorAll(
-                            ".new-mem-req-drop-down-ul-element"
-                          );
-
-                          const visibleElements = Array.from(elements).filter(
-                            (element) => !element.hidden
-                          );
-                          if (visibleElements.length) {
-                            visibleElements[0].hidden = true;
-                          }
-                          document.getElementById(
-                            `${e.target.id}-drop-down`
-                          ).hidden = false;
-                        }}
+                            const visibleElements = Array.from(elements).filter(
+                              (element) => !element.hidden
+                            );
+                            if (visibleElements.length) {
+                              visibleElements[0].hidden = true;
+                            }
+                            document.getElementById(
+                              `${e.target.id}-drop-down`
+                            ).hidden = false;
+                          }}
+                        >
+                          {memberRequestsDocs[docKey]["name"]}
+                        </div>
+                        <div id={docKey} className="admin-btn-container">
+                          <button
+                            className="admin-btn"
+                            onClick={(e) => {
+                              handleAcceptbtn(e.target.parentElement.id);
+                            }}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="admin-btn"
+                            onClick={(e) => {
+                              handleDeclinebtn(e.target.parentElement.id);
+                            }}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </li>
+                      <ul
+                        id={`new-mem-req-${docKey}-drop-down`}
+                        className="new-mem-req-drop-down-ul-element drop-down-ul-element"
+                        hidden={true}
                       >
-                        {memberRequestsDocs[docKey]["name"]}
-                      </div>
-                      <div id={docKey}>
-                        <button
+                        <li key="1">{`Email: ${memberRequestsDocs[docKey]["email"]}`}</li>
+                        <li key="2">{`Phone: ${memberRequestsDocs[docKey]["phone"]}`}</li>
+                        <li key="3">{`RollNo.: `}</li>
+                      </ul>
+                    </>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <>
+              <ul>
+                {Object.keys(usersDocs).map((docKey) => {
+                  return (
+                    <>
+                      <li className="reg-mem-li-element">
+                        <div
+                          id={`reg-mem-${docKey}`}
+                          className="reg-mem-div-element"
+                          object={usersDocs}
                           onClick={(e) => {
-                            handleAcceptbtn(e.target.parentElement.id);
-                          }}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            handleDeclinebtn(e.target.parentElement.id);
-                          }}
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    </li>
-                    <ul
-                      id={`new-mem-req-${docKey}-drop-down`}
-                      className="new-mem-req-drop-down-ul-element"
-                      hidden={true}
-                    >
-                      <li key="1">{`Email: ${memberRequestsDocs[docKey]["email"]}`}</li>
-                      <li key="2">{`Phone: ${memberRequestsDocs[docKey]["phone"]}`}</li>
-                      <li key="3">{`RollNo.: `}</li>
-                    </ul>
-                  </>
-                );
-              })}
-            </ul>
-          </>
-        ) : (
-          <>
-            <h1>Registered Members</h1>
-            <ul>
-              {Object.keys(usersDocs).map((docKey) => {
-                return (
-                  <>
-                    <li className="reg-mem-li-element">
-                      <div
-                        id={`reg-mem-${docKey}`}
-                        className="reg-mem-div-element"
-                        object={usersDocs}
-                        onClick={(e) => {
-                          const elements = document.querySelectorAll(
-                            ".reg-mem-drop-down-ul-element"
-                          );
+                            const elements = document.querySelectorAll(
+                              ".reg-mem-drop-down-ul-element"
+                            );
 
-                          const visibleElements = Array.from(elements).filter(
-                            (element) => !element.hidden
-                          );
-                          console.log("visibleElements: ", visibleElements);
-                          if (visibleElements.length) {
-                            visibleElements[0].hidden = true;
-                          }
-                          const element = document.getElementById(
-                            `${e.target.id}-drop-down`
-                          );
-                          console.log("element: ", element, e.target.id);
-                          element.hidden = false;
-                        }}
+                            const visibleElements = Array.from(elements).filter(
+                              (element) => !element.hidden
+                            );
+                            if (visibleElements.length) {
+                              visibleElements[0].hidden = true;
+                            }
+                            const element = document.getElementById(
+                              `${e.target.id}-drop-down`
+                            );
+                            element.hidden = false;
+                          }}
+                        >
+                          {usersDocs[docKey]["name"]}
+                        </div>
+                      </li>
+                      <ul
+                        id={`reg-mem-${docKey}-drop-down`}
+                        className="reg-mem-drop-down-ul-element drop-down-ul-element"
+                        hidden={true}
                       >
-                        {usersDocs[docKey]["name"]}
-                      </div>
-                      <div id={docKey}>
-                        <button
-                          onClick={(e) => {
-                            handleModifybtn(e.target.parentElement.id);
-                          }}
-                        >
-                          Modify
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            handleDeletebtn(e.target.parentElement.id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                    <ul
-                      id={`reg-mem-${docKey}-drop-down`}
-                      className="reg-mem-drop-down-ul-element"
-                      hidden={true}
-                    >
-                      <li key="1">{`Email: ${usersDocs[docKey]["email"]}`}</li>
-                      <li key="2">{`Phone: ${usersDocs[docKey]["phone"]}`}</li>
-                      <li key="3">{`RollNo.: `}</li>
-                    </ul>
-                  </>
-                );
-              })}
-            </ul>
-          </>
-        )}
+                        <li key="1">{`Email: ${usersDocs[docKey]["email"]}`}</li>
+                        <li key="2">{`Phone: ${usersDocs[docKey]["phone"]}`}</li>
+                        <li key="3">{`RollNo.: `}</li>
+                      </ul>
+                    </>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

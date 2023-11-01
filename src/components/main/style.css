@@ -77,15 +77,21 @@ input {
   max-width: 100%;
   max-height: 150px;
 }
+
+.side-aisle-btn-container {
+  /* background-color: red; */
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  padding-bottom: 10px;
+  /* flex-direction: column; */
+}
+
 .btn-signout-container {
   /* background-color: blue; */
   border: 2px solid rgb(33, 42, 83);
   border-radius: 0.6rem;
   margin-top: 20px;
-  position: relative;
-  top: -2.3%;
-  left: 70%;
-  transform: translateX(-50%);
   max-width: 40%;
   width: 35%;
   height: 60px;
@@ -93,15 +99,13 @@ input {
 }
 
 .admin-path {
-  position: relative;
-  top: 37%;
-  left: 10px;
-  display: flex;
+  max-width: 40%;
   width: 35%;
-  height: 58px;
+  height: 55px;
+  margin-top: 20px;
+  display: flex;
+  justify-self: center;
   align-items: center;
-  margin: 0% 5%;
-  padding: 5% 2%;
   border-radius: 0.55rem;
   background-color: yellow;
   justify-content: space-around;
@@ -133,6 +137,7 @@ input {
   font-size: 16px;
   font-style: "poppins";
   font-weight: 100;
+  text-align: center;
 }
 
 .Signout:hover {
@@ -248,6 +253,28 @@ input {
   font-weight: 800;
 }
 
+/********************************************/
+.alert-messages {
+  position: absolute;
+  inset: 58% 10%;
+}
+.keys-possesion-claimers {
+  display: flex;
+  overflow-x: auto;
+}
+.individual-keys-possesion-claimers {
+  display: flex;
+  justify-content: space-around;
+  padding: 0% 2%;
+}
+
+.sent-message-status-box {
+  position: relative;
+  top: -8%;
+  left: 8%;
+}
+/********************************************/
+
 @media (max-width: 1250px) {
   .box {
     width: 85%;
@@ -267,36 +294,13 @@ input {
   .container {
     padding: 0;
   }
-  /* 
-  .circle1 {
-    position: absolute;
-    top: -80%;
-    left: -110%;
-    background-color: rgb(24, 137, 141);
-    width: 800px;
-    height: 800px;
-    border-radius: 50%;
-  }
-  .circle2 {
-    position: absolute;
-    top: -65%;
-    left: -25%;
-    background-color: rgb(98, 193, 197);
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-  } */
+
   .box {
     box-shadow: none;
     width: 93%;
     height: 97vh;
     border-radius: 2rem;
-    background: rgba(
-      255,
-      255,
-      255,
-      0.5
-    ); /* Semi-transparent white background */
+    background: rgb(255, 255, 255); /* Semi-transparent white background */
     backdrop-filter: blur(9px);
     margin: 0;
   }
@@ -368,6 +372,10 @@ input {
     top: 60px;
     width: 100%;
   }
+  /* 
+  .side-aisle-btn-container {
+    background-color: red;
+  } */
   .btn-signout-container {
     position: absolute;
     width: 130px;
@@ -375,7 +383,7 @@ input {
     border-radius: 0.55rem;
     top: 75%;
     border: 2px solid rgb(253, 210, 71);
-    left: 40%;
+    left: 41%;
     transform: translateX(-100%);
   }
   .Signout {
@@ -390,9 +398,9 @@ input {
     width: 130px;
     height: 50px;
     border-radius: 0.55rem;
-    top: 87%;
+    top: 85%;
     border: 2px solid rgb(33, 42, 83);
-    left: 35%;
+    left: 41%;
     transform: translateX(-100%);
   }
 
@@ -402,24 +410,9 @@ input {
   .key-owner-name {
     font-weight: 400;
   }
-}
-
-/********************************************/
-.alert-messages {
-  position: absolute;
-  inset: 58% 0%;
-}
-.keys-possesion-claimers {
-  display: flex;
-  overflow-x: auto;
-}
-.individual-keys-possesion-claimers {
-  display: flex;
-  justify-content: space-around;
-  padding: 0% 2%;
-}
-
-.message-status-box {
-  position: absolute;
-  inset: 65% 0%;
+  /********************************************/
+  .sent-message-status-box {
+    position: relative;
+    top: 62%;
+  }
 }

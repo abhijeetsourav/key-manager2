@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -8,13 +8,12 @@ import { Link } from "react-router-dom";
 
 import key from "./key.png";
 import logo from "./cyborg-logo.png";
-
 import { doc, setDoc } from "firebase/firestore";
-
 import { db, auth } from "../../firebase";
 import LoadingSign from "../loader/loader";
 import "./signup.css";
 import toast from "react-hot-toast";
+import { AuthContext } from "../auth";
 
 export default function Signup() {
   const [username, setUsername] = useState("");
@@ -26,18 +25,28 @@ export default function Signup() {
   const [errorMessage, setErrorMessage] = useState("Enter valid details");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [currentUser, unsubscribe] = useContext(AuthContext);
+
   const handleSignup = async () => {
-    setEmail(rollNo + "nitrkl.ac.in");
+    // console.log(email);
+    // console.log(typeof email);
+    console.log("inside handlesignup function...");
+    unsubscribe();
+    console.log("unsubscribed from listening...");
     const createUser = createUserWithEmailAndPassword(auth, email, password)
-      .then(async (cred) => {
-        try {
+      .then(async (cred) => {})
+       /* try {
           const uploadingDoc = setDoc(doc(db, "admin", cred.user.uid), {
             name: username,
             haskey: false,
             email: email,
+            rollNo: rollNo.current,
             phone: phone.current,
           });
+
+          // console.log("setdoc started");
           await uploadingDoc();
+          // console.log("setDoc ended");
 
           toast.promise(uploadingDoc, {
             loading: "uploading doc to firebase database...",
@@ -64,7 +73,6 @@ export default function Signup() {
               }
             },
           });
-          // console.log("verify email start .....");
 
           const verifyEmail = Promise.all([
             uploadingDoc(),
@@ -98,7 +106,7 @@ export default function Signup() {
     const inputBoxes = document.querySelectorAll("input");
     for (let inputBox of inputBoxes) {
       inputBox.value = "";
-    }
+    }*/
     /*try {
       await toast.promise(
         createUserWithEmailAndPassword(auth, email, password).then(
@@ -306,6 +314,18 @@ export default function Signup() {
                     />
                   </div>
                   {/* email field  */}
+                  {/* <div className="input-wrap">
+                    <input
+                      className="input-field"
+                      type="email"
+                      id="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                      }}
+                    />
+                  </div> */}
                   <div className="input-wrap">
                     <input
                       className="input-field"
@@ -313,10 +333,9 @@ export default function Signup() {
                       id="email"
                       placeholder="Enter your Roll No"
                       onChange={(e) => {
-                        // console.log(rollNo + "nitrkl.ac.in");
-                        // phone.current = e.target.value;
                         rollNo.current = e.target.value;
                         const regexValid = /^\d{3}[a-zA-Z]{2}\d{4}$/;
+                        setEmail(rollNo.current + "@nitrkl.ac.in");
                         setErrorTrigger(regexValid.test(rollNo.current));
                         if (regexValid.test(rollNo.current) == false) {
                           setErrorMessage("Enter valid Roll no");
@@ -324,6 +343,8 @@ export default function Signup() {
                           setErrorMessage("Please check all fields");
                         }
                       }}
+                      maxLength="9"
+                      minLength="9"
                     />
                   </div>
 
@@ -375,6 +396,7 @@ export default function Signup() {
                         passwordRequired.value &&
                         errorTrigger
                       ) {
+                        // console.log(email);
                         handleSignup();
                       } else {
                         toast.error(errorMessage);

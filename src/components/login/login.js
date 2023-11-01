@@ -20,7 +20,7 @@ function Login() {
   // new toast promise here
 
   const handleLogin = async () => {
-    setEmail(rollNo.current + "@nitrkl.ac.in");
+    // console.log(email);
     const userLogin = signInWithEmailAndPassword(auth, email, password);
 
     toast.promise(userLogin, {
@@ -176,6 +176,7 @@ function Login() {
                           // phone.current = e.target.value;
                           rollNo.current = e.target.value;
                           const regexValid = /^\d{3}[a-zA-Z]{2}\d{4}$/;
+                          setEmail(rollNo.current + "@nitrkl.ac.in");
                           setErrorTrigger(regexValid.test(rollNo.current));
                           if (regexValid.test(rollNo.current) == false) {
                             setErrorMessage("Enter valid Roll no");
