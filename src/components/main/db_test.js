@@ -8,7 +8,6 @@ import {
   doc,
   getDoc,
   deleteDoc,
-  getDocs,
 } from "firebase/firestore";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import "./style.css";
@@ -21,7 +20,6 @@ import LoadingSign from "../loader/loader";
 import Signout from "../signout/signout";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-
 import Requests from "./requests";
 
 const Name = () => {
@@ -36,19 +34,12 @@ const Name = () => {
 
   //************* popup
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-
   //************* popup ends
 
   useEffect(() => {
     const q = query(collection(db, "users"), where("haskey", "==", true)); //querying who has keys
     const adminDocRef = doc(db, "admin-users", currentUser.id);
 
-    // const keyClaimersCollection = collection(db, "key-claimers");
-    // getDocs(keyClaimersCollection).then((collection) => {
-    //   collection.forEach((doc) => {
-    //     console.log(doc);
-    //   });
-    // });
     getDoc(adminDocRef).then((adminDoc) => {
       //checking whether the user is admin or not
       if (adminDoc.exists()) {
@@ -57,7 +48,6 @@ const Name = () => {
         userIsAdmin.current = false;
       }
     });
-    // console.log(userIsAdmin);
     //snaphot of query(who is having the keys)//
     const queryListener = onSnapshot(q, (keyHolderSnapshot) => {
       try {
